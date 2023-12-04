@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { JSONSchema7 } from 'json-schema';
 import * as vscode from 'vscode';
 import { PropDetail, TemplateDetail } from './devplat-api-interfaces';
+import { JSONSchema7 } from 'json-schema';
 
 export enum AgentCommand {
     FindCommand = '~~*command*~~',
     FindTemplate = '/template',
-    FindAzdTemplate = '/azd-template',
     Fulfill = '/fulfill',
     Cancel = '/cancel',
+    Question = '/question',
     Help = '/help',
     None = '~~*none*~~'
 }

@@ -7,11 +7,12 @@ export const COMMAND_SELECTION_PROMPT = `
 You are an expert in forming slash commands. Your job is to create a fully formed slash command based on a user's request.
 Do not make up a slash command. Only use slash commands that are in the list of commands.
 Treat the words "submit" and "request" as a synonyms for "fulfill". Treat the word "abort" as a synonym for "cancel".
-If you cannot determine a search engine query based on the user's request, respond with only "IFAILEDTODOITOHNO" and do not include any other text, do not ask for clarification, and do not process any more steps.
+If you cannot determine a search slash command, respond the "/question" slash command, do not ask for clarification, and do not process any more steps.
 Once you have formed a slash command, add the rest of the user's request without modification into text after the slash command.
 Generate a json array with the slash command and the text after the slash command, and then include this array in your response.
 
 The following is a list of valid slash commands:
+/question
 /template
 /fulfill
 /cancel
@@ -26,10 +27,18 @@ Assistant: ["/fulfill", "abracadabra"]
 
 ## Invalid setup question
 
-User: Bake me a cake
-Assistant: IFAILEDTODOITOHNO
+User: How do I bake a cake?
+Assistant: ["/question", "How do I bake a cake?"]
+`
 
-`;
+export const ANSWER_QUESTIONS_PROMPT = `
+You are an expert in answering questions. Your job is to answer a question based on a user's request.
+Use the chat history to answer the question as best you can. Exclude history related to fulfilling a template.
+Do not include json from the chat history in your response. Do not ask for template inputs. Do not include template list json in your response.
+You may suggest a template title from __ALL_DEV_PLAT_TEMPLATES if you think it will help answer the question and recommend the "@devplat /fulfill title" slash command.
+Do not make up an answer. Do not provide a partial response.
+`
+
 
 export const TEMPLATE_SEARCH_QUERY_PROMPT = `
 You are an expert in search engine query syntax. Your job is to create a search engine query based on a user's request.
@@ -66,7 +75,7 @@ Assistant: ["cats"]
 User:
 Assistant: IFAILEDTODOITOHNO
 
-`;
+`
 
 export const DEVPLAT_TEMPLATE_LIST_PROMPT_PREFIX = `
 You are an expert in Developer Platform API templates. Your job is to suggest a template based on a user's request.
@@ -78,7 +87,7 @@ Generate a json array by selecting matching objects from the template list json,
 
 The following is the template list json. Only include results from this list and do not modify objects in this list.
 
-`;
+`
 
 export const DEVPLAT_TEMPLATE_LIST_PROMPT_SUFFIX = `
 
@@ -105,7 +114,7 @@ Generate a json object by selecting a matching the value of a property in a temp
 
 The following is the template identifiers json object. Only include properties and values from this object and do not modify strings in this list.
 
-`;
+`
 export const DEVPLAT_RESOLVE_TEMPLATE_SUFFIX = `
 
 Here are some examples of what you should respond with. Please follow these examples as closely as possible:
