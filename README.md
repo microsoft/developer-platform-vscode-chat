@@ -1,4 +1,4 @@
-# VS Code Internal Developer Platform Chat Agent Extension
+# Developer Platform Chat Agent for VS Code
 
 This extension illustrates how an extension can register a `@devplat` chat agent that helps a user create find and use a developer platform template in VS Code and access the Copilot LLM in the chat agent handler.
 
