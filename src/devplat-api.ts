@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import lunr from 'lunr';
 import * as vscode from 'vscode';
+import lunr from 'lunr';
 import { outputChannel } from './common';
 import { DevPlatApiResult, ProviderAuthInfo, TemplateDetail, TemplateSummary } from './domain/devplat-api-interfaces';
 
@@ -51,7 +51,7 @@ export async function callApi(
     let additionalAuthInfo: ProviderAuthInfo | null = null;
     const wwwAuth = response.headers.get('www-authenticate');
     if (response.status === 200 && wwwAuth) {
-        // comes back as something like: 'Bearer realm="GitHub", authorization_uri="https://mydevplatformendpoint-github.azurewebsites.net/auth/login", scopes="api://00000000-0000-0000-0000-000000000000/.default"'
+        // comes back as something like: 'Bearer realm="GitHub", authorization_uri="https://devplatformtest-github.azurewebsites.net/auth/login", scopes="api://009222db-2537-4d5e-9da4-e9ee90e82ecf/.default"'
         // Json becomes: { "realm": "GitHub", "authorization_uri": "https://...", "scopes": "api://..." }
         additionalAuthInfo = wwwAuth.split(',').reduce((acc, param) => {
             let [key, value] = param.split('=');
@@ -261,6 +261,10 @@ export function templateToSummary(template: TemplateDetail, resultIndex: number 
         tags: template.metadata.tags,
         creates: template.spec?.creates?.map((obj: any) => obj.kind)
     };
+}
+
+export function getTemplateSummaries() {
+    return templates.map((template, idx) => templateToSummary(template, idx));
 }
 
 export async function checkFulfillmentStatus(id: string) {

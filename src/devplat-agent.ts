@@ -2,15 +2,18 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { askAgentForJson, outputChannel } from './common';
-import { COMMAND_SELECTION_PROMPT } from './constants';
+import { ANSWER_QUESTIONS_PROMPT, COMMAND_SELECTION_PROMPT } from './constants';
+import { outputChannel, askAgentForJson, askAgent } from './common';
 import { handleDevPlatformApiChatCommand } from './devplat-api-chat';
-import { AgentCommand, AgentConfirmationStatus, AgentState, CommandRequest, DevPlatAgentResult } from './domain/agent';
+import { AgentCommand, AgentState, AgentConfirmationStatus, CommandRequest, DevPlatAgentResult } from './domain/agent';
+import { getTemplateSummaries, templateToSummary } from './devplat-api';
 
 const agentState: AgentState = {
     commandAlreadyInProgress: AgentCommand.None,
     confirmationStatus: AgentConfirmationStatus.NotStarted
 };
+
+let allTemplateDataSent = false;
 
 export function initAgent(context: vscode.ExtensionContext) {
     // Create agent
@@ -50,6 +53,31 @@ async function chatAgentHandler(
         progress.report(<vscode.ChatAgentContent>{
             content: `Right-o! We can pretend that never happened. What do you want to talk about now?`
         });
+        return {};
+    }
+    if (commandRequest.command === AgentCommand.Question) {
+        const response = await askAgent(
+            [
+                {
+                    role: vscode.ChatMessageRole.System,
+                    content: `Use the data from the __ALL_DEV_PLAT_TEMPLATES json to help answer your questions.\n${
+                        allTemplateDataSent
+                            ? ``
+                            : '\n__ALL_DEV_PLAT_TEMPLATES=' + JSON.stringify(getTemplateSummaries())
+                    }}`
+                },
+                {
+                    role: vscode.ChatMessageRole.System,
+                    content: ANSWER_QUESTIONS_PROMPT
+                },
+                {
+                    role: vscode.ChatMessageRole.User,
+                    content: request.prompt
+                }
+            ],
+            token
+        );
+        progress.report(<vscode.ChatAgentContent>{ content: response });
         return {};
     }
     if (commandRequest.command === AgentCommand.None) {
