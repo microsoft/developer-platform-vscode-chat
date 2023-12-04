@@ -128,3 +128,35 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+.DS_Store
+
+.local
+docs/.local
+
+secrets.*
+
+test.*.bicepparam
+
+# appsettings.Development.json
+*.json.zip
+
+local.settings.json
+
+# .env.development
+
+sdks/**
+schemas/**
+
+# deploy/**
+**/*.pem
+
+/deploy/**/params
+/deploy/**/testparams
+/deploy/**/portal
+/deploy/local
+
+local.bicep
+all.bicep
+
+**/home
