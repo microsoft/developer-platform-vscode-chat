@@ -1,5 +1,5 @@
 # NOTE: v* tags are protected, so this step will fail for anyone who is not owner/maintainer
-name: Cut a release
+name: Release
 on:
   push:
     tags:
