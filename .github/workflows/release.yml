@@ -1,0 +1,35 @@
+# NOTE: v* tags are protected, so this step will fail for anyone who is not owner/maintainer
+name: Cut a release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+    - name: Install dependencies
+      run: npm install
+    - name: Update package.json to match release version
+      run: node scripts/update-version.js  ${{github.ref_name}}
+    - name: Build and package extension
+      run: npx vsce package
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        commit: ${{ github.sha }}
+        tag: ${{github.ref_name}}
+        generateReleaseNotes: true
+        artifacts: "*.vsix"

@@ -1,0 +1,17 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Tab indentation
+[*]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[Dockerfile]
+indent_style = spaces
+indent_size = 4
+
+[*.{yml,yaml}]
+indent_style = spaces
+indent_size = 2
