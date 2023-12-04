@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 const path = require('path');
 const fs = require('fs')
 if (process.argv.length < 3 || process.argv[2][0] !== 'v') {

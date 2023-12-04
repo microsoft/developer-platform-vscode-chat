@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export const AGENT_NAME = 'Internal_Developer_Platform';
 
 export const COMMAND_SELECTION_PROMPT = `
@@ -26,7 +29,7 @@ Assistant: ["/fulfill", "abracadabra"]
 User: Bake me a cake
 Assistant: IFAILEDTODOITOHNO
 
-`
+`;
 
 export const TEMPLATE_SEARCH_QUERY_PROMPT = `
 You are an expert in search engine query syntax. Your job is to create a search engine query based on a user's request.
@@ -63,7 +66,7 @@ Assistant: ["cats"]
 User:
 Assistant: IFAILEDTODOITOHNO
 
-`
+`;
 
 export const DEVPLAT_TEMPLATE_LIST_PROMPT_PREFIX = `
 You are an expert in Developer Platform API templates. Your job is to suggest a template based on a user's request.
@@ -75,7 +78,7 @@ Generate a json array by selecting matching objects from the template list json,
 
 The following is the template list json. Only include results from this list and do not modify objects in this list.
 
-`
+`;
 
 export const DEVPLAT_TEMPLATE_LIST_PROMPT_SUFFIX = `
 
@@ -102,7 +105,7 @@ Generate a json object by selecting a matching the value of a property in a temp
 
 The following is the template identifiers json object. Only include properties and values from this object and do not modify strings in this list.
 
-`
+`;
 export const DEVPLAT_RESOLVE_TEMPLATE_SUFFIX = `
 
 Here are some examples of what you should respond with. Please follow these examples as closely as possible:
