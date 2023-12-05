@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { TemplateRequest } from '@developer-platform/entities';
 import { randomInt } from 'crypto';
 import { JSONSchema7 } from 'json-schema';
 import * as vscode from 'vscode';
@@ -14,12 +15,7 @@ import {
     DevPlatAgentResult,
     SubmitRequestInputState
 } from './domain/agent';
-import {
-    DevPlatApiResult,
-    DevPlatApiTemplateRequest,
-    PropDetail,
-    TemplateDetail
-} from './domain/devplat-api-interfaces';
+import { DevPlatApiResult, PropDetail, TemplateDetail } from './domain/devplat-api-interfaces';
 
 export async function handleDevPlatformApiChatCommand(
     agentState: AgentState,
@@ -395,8 +391,8 @@ async function submitFulfillmentRequestToApi(
     progress: vscode.Progress<vscode.ChatAgentProgress>,
     token: vscode.CancellationToken
 ): Promise<vscode.ProviderResult<DevPlatAgentResult>> {
-    const request: DevPlatApiTemplateRequest = {
-        templateRef: inputState.template.templateRef,
+    const request: TemplateRequest = {
+        templateRef: inputState.template.ref,
         provider: inputState.template.metadata.provider,
         inputJson: JSON.stringify(inputState.inputValues)
     };
