@@ -116,8 +116,14 @@ export async function discussFulfillmentRequest(
         const inputProperties: PropDetail[] = [];
         if (inputJsonSchema && inputJsonSchema.properties && Object.keys(inputJsonSchema.properties).length > 0) {
             progress.report(<vscode.ChatAgentContent>{
+                content: `I can do that.\n`
+            });
+            /*
+            progress.report(<vscode.ChatAgentContent>{
                 content: `I can do that. But first, I need values for the following inputs:\n|Input|Description|\n|---|---|\n`
             });
+            */
+            // TODO: Ideally we'd only prompt for required fields, and have a chat process to see if they want to set any optional values after required vals are in.
             for (let propKey in inputJsonSchema.properties) {
                 const propDetail = <PropDetail>(inputJsonSchema.properties[propKey] || {});
                 propDetail.name = propKey;
@@ -125,11 +131,13 @@ export async function discussFulfillmentRequest(
                 inputProperties.push(propDetail);
 
                 // Output input values
+                /*
                 progress.report(<vscode.ChatAgentContent>{
                     content: `|${propDetail?.title}|${propDetail?.isRequired ? '(Required) ' : ''}${
                         propDetail.description || propDetail.title + '.'
                     }|\n`
                 });
+                */
             }
             progress.report(<vscode.ChatAgentContent>{ content: `\nLet's get started!\n\n` });
         }
@@ -268,11 +276,17 @@ async function askForInput(
               input.enum.reduce((acc: string | null, cur: string) => (acc ? `${acc}, ${cur}` : cur), null) +
               '. '
             : `a ${input.type}.`;
+    /*
     progress.report(<vscode.ChatAgentContent>{
         content: `**[${inputState.inputPropertyIndex + 1} / ${inputState.inputProperties.length}] ${input.title}**:${
             input.description || input.title + '.'
-        }\n\n Reply with \`@devplat\` and  ${validValues}`
+        }`
     });
+    */
+    progress.report(<vscode.ChatAgentContent>{
+        content: `What do you want me to use as the **${input.title}**?`
+    });
+
     let followUps = [];
     switch (input.type) {
         case 'boolean':
@@ -342,9 +356,11 @@ async function processInput(
         });
         return false;
     }
+    /*
     progress.report(<vscode.ChatAgentContent>{
         content: `Ok, I'll use "${commandRequest.argumentString}" for **${input.title}**.\n\n`
     });
+    */
     return true;
 }
 
@@ -393,7 +409,7 @@ async function submitFulfillmentRequestToApi(
         progress.report(<vscode.ChatAgentContent>{
             content: `\nRequest ${apiResult.json.id} submitted! I'll let you know when it's done!`
         });
-        reportFulfillmentStatusWhenDone(apiResult, progress, token); // Async but don't wait.
+        reportFulfillmentStatusWhenDone(inputState, apiResult, progress, token); // Async but don't wait.
         return {};
     }
     progress.report(<vscode.ChatAgentContent>{ content: `\nRequest${apiResult.json.id} complete!` });
@@ -401,14 +417,34 @@ async function submitFulfillmentRequestToApi(
 }
 
 async function reportFulfillmentStatusWhenDone(
+    inputState: any,
     apiResult: DevPlatApiResult,
     progress: vscode.Progress<vscode.ChatAgentProgress>,
     token: vscode.CancellationToken
 ): Promise<void> {
     const requestResult = await waitForFulfillment(apiResult);
     if (requestResult) {
-        vscode.window.showInformationMessage(
-            `Internal Developer Platform request ${apiResult.json.id} is complete! ${requestResult.text}`
-        );
+        if (
+            inputState?.template?.spec?.creates?.reduce(
+                (acc: boolean, cur: any) => acc || cur.kind === 'Repo',
+                false
+            ) &&
+            inputState?.inputValues?.name
+        ) {
+            // TODO: This is a hack to get the repo URL. We should get this from the API.
+            const fullRepo = `https://github.com/contoso-inc/${inputState.inputValues.name}`;
+            // TODO: We can likely do other kinds of "open" type actions here.
+            vscode.window
+                .showInformationMessage(`${fullRepo} is ready! Clone it now?`, 'Clone repo', 'Cancel')
+                .then((button: string | undefined) => {
+                    if (button === 'Clone repo') {
+                        vscode.commands.executeCommand('git.clone', fullRepo);
+                    }
+                });
+        } else {
+            vscode.window.showInformationMessage(
+                `Internal Developer Platform request ${apiResult.json.id} is complete! ${requestResult.text}`
+            );
+        }
     }
 }
