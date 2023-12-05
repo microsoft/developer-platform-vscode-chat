@@ -123,10 +123,8 @@ export async function discussFulfillmentRequest(
                 content: `I can do that. But first, I need values for the following inputs:\n|Input|Description|\n|---|---|\n`
             });
             */
+            // TODO: Ideally we'd only prompt for required fields, and have a chat process to see if they want to set any optional values after required vals are in.
             for (let propKey in inputJsonSchema.properties) {
-                //TODO: REMOVE HACK
-                if (propKey !== 'name') continue;
-
                 const propDetail = <PropDetail>(inputJsonSchema.properties[propKey] || {});
                 propDetail.name = propKey;
                 propDetail.isRequired = inputJsonSchema?.required?.indexOf(propDetail.name) || -1 > -1 ? true : false;
@@ -418,7 +416,6 @@ async function submitFulfillmentRequestToApi(
     return {};
 }
 
-// TODO: Make this an input dialog to open the resulting repo
 async function reportFulfillmentStatusWhenDone(
     inputState: any,
     apiResult: DevPlatApiResult,
@@ -434,21 +431,13 @@ async function reportFulfillmentStatusWhenDone(
             ) &&
             inputState?.inputValues?.name
         ) {
+            // TODO: This is a hack to get the repo URL. We should get this from the API.
             const fullRepo = `https://github.com/contoso-inc/${inputState.inputValues.name}`;
+            // TODO: We can likely do other kinds of "open" type actions here.
             vscode.window
-                .showInformationMessage(
-                    `${fullRepo} is ready! Internal Developer Platform request ${apiResult.json.id} is complete! Clone it now?`,
-                    'Clone repo',
-                    'Cancel'
-                )
+                .showInformationMessage(`${fullRepo} is ready! Clone it now?`, 'Clone repo', 'Cancel')
                 .then((button: string | undefined) => {
-                    if (button === 'Open repo') {
-                        vscode.commands.executeCommand(
-                            'git.openRepository',
-                            fullRepo,
-                            process.env.HOME + '/Repos/contoso-inc'
-                        );
-                    } else if (button === 'Clone repo') {
+                    if (button === 'Clone repo') {
                         vscode.commands.executeCommand('git.clone', fullRepo);
                     }
                 });
