@@ -116,20 +116,30 @@ export async function discussFulfillmentRequest(
         const inputProperties: PropDetail[] = [];
         if (inputJsonSchema && inputJsonSchema.properties && Object.keys(inputJsonSchema.properties).length > 0) {
             progress.report(<vscode.ChatAgentContent>{
+                content: `I can do that.\n`
+            });
+            /*
+            progress.report(<vscode.ChatAgentContent>{
                 content: `I can do that. But first, I need values for the following inputs:\n|Input|Description|\n|---|---|\n`
             });
+            */
             for (let propKey in inputJsonSchema.properties) {
+                //TODO: REMOVE HACK
+                if (propKey !== 'name') continue;
+
                 const propDetail = <PropDetail>(inputJsonSchema.properties[propKey] || {});
                 propDetail.name = propKey;
                 propDetail.isRequired = inputJsonSchema?.required?.indexOf(propDetail.name) || -1 > -1 ? true : false;
                 inputProperties.push(propDetail);
 
                 // Output input values
+                /*
                 progress.report(<vscode.ChatAgentContent>{
                     content: `|${propDetail?.title}|${propDetail?.isRequired ? '(Required) ' : ''}${
                         propDetail.description || propDetail.title + '.'
                     }|\n`
                 });
+                */
             }
             progress.report(<vscode.ChatAgentContent>{ content: `\nLet's get started!\n\n` });
         }
@@ -268,11 +278,17 @@ async function askForInput(
               input.enum.reduce((acc: string | null, cur: string) => (acc ? `${acc}, ${cur}` : cur), null) +
               '. '
             : `a ${input.type}.`;
+    /*
     progress.report(<vscode.ChatAgentContent>{
         content: `**[${inputState.inputPropertyIndex + 1} / ${inputState.inputProperties.length}] ${input.title}**:${
             input.description || input.title + '.'
-        }\n\n Reply with \`@devplat\` and  ${validValues}`
+        }`
     });
+    */
+    progress.report(<vscode.ChatAgentContent>{
+        content: `What do you want me to use as the **${input.title}**?`
+    });
+
     let followUps = [];
     switch (input.type) {
         case 'boolean':
@@ -342,9 +358,11 @@ async function processInput(
         });
         return false;
     }
+    /*
     progress.report(<vscode.ChatAgentContent>{
         content: `Ok, I'll use "${commandRequest.argumentString}" for **${input.title}**.\n\n`
     });
+    */
     return true;
 }
 
@@ -425,7 +443,11 @@ async function reportFulfillmentStatusWhenDone(
                 )
                 .then((button: string | undefined) => {
                     if (button === 'Open repo') {
-                        vscode.commands.executeCommand('git.openRepository', fullRepo, process.env.HOME + '/repos');
+                        vscode.commands.executeCommand(
+                            'git.openRepository',
+                            fullRepo,
+                            process.env.HOME + '/Repos/contoso-inc'
+                        );
                     } else if (button === 'Clone repo') {
                         vscode.commands.executeCommand('git.clone', fullRepo);
                     }
