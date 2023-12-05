@@ -393,22 +393,47 @@ async function submitFulfillmentRequestToApi(
         progress.report(<vscode.ChatAgentContent>{
             content: `\nRequest ${apiResult.json.id} submitted! I'll let you know when it's done!`
         });
-        reportFulfillmentStatusWhenDone(apiResult, progress, token); // Async but don't wait.
+        reportFulfillmentStatusWhenDone(inputState, apiResult, progress, token); // Async but don't wait.
         return {};
     }
     progress.report(<vscode.ChatAgentContent>{ content: `\nRequest${apiResult.json.id} complete!` });
     return {};
 }
 
+// TODO: Make this an input dialog to open the resulting repo
 async function reportFulfillmentStatusWhenDone(
+    inputState: any,
     apiResult: DevPlatApiResult,
     progress: vscode.Progress<vscode.ChatAgentProgress>,
     token: vscode.CancellationToken
 ): Promise<void> {
     const requestResult = await waitForFulfillment(apiResult);
     if (requestResult) {
-        vscode.window.showInformationMessage(
-            `Internal Developer Platform request ${apiResult.json.id} is complete! ${requestResult.text}`
-        );
+        if (
+            inputState?.template?.spec?.creates?.reduce(
+                (acc: boolean, cur: any) => acc || cur.kind === 'Repo',
+                false
+            ) &&
+            inputState?.inputValues?.name
+        ) {
+            const fullRepo = `https://github.com/contoso-inc/${inputState.inputValues.name}`;
+            vscode.window
+                .showInformationMessage(
+                    `${fullRepo} is ready! Internal Developer Platform request ${apiResult.json.id} is complete! Clone it now?`,
+                    'Clone repo',
+                    'Cancel'
+                )
+                .then((button: string | undefined) => {
+                    if (button === 'Open repo') {
+                        vscode.commands.executeCommand('git.openRepository', fullRepo, process.env.HOME + '/repos');
+                    } else if (button === 'Clone repo') {
+                        vscode.commands.executeCommand('git.clone', fullRepo);
+                    }
+                });
+        } else {
+            vscode.window.showInformationMessage(
+                `Internal Developer Platform request ${apiResult.json.id} is complete! ${requestResult.text}`
+            );
+        }
     }
 }
