@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { JSONSchema7 } from 'json-schema';
 import * as vscode from 'vscode';
 import { PropDetail, TemplateDetail } from './devplat-api-interfaces';
-import { JSONSchema7 } from 'json-schema';
 
 export enum AgentCommand {
     FindCommand = '~~*command*~~',

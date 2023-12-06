@@ -94,7 +94,7 @@ Here are some examples of what you should respond with. Please follow these exam
 ## Valid setup question
 
 User: What templates can I use that best match the following criteria? javascript and cosmosdb
-Assistant: [{ "resultIndex": 1, "templateRef": "Template:my-namespace/my-name", "title": "Kubernetes React Web App with Node.js API and MongoDB", "description": "A blueprint for getting a React.js web app with a Node.js API and a MongoDB database on Azure." }]
+Assistant: [{ "resultIndex": 1, "ref": "Template:my-namespace/my-name", "title": "Kubernetes React Web App with Node.js API and MongoDB", "description": "A blueprint for getting a React.js web app with a Node.js API and a MongoDB database on Azure." }]
 
 ## Invalid setup question
 

@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
+import { askAgent, askAgentForJson, outputChannel } from './common';
 import { ANSWER_QUESTIONS_PROMPT, COMMAND_SELECTION_PROMPT } from './constants';
-import { outputChannel, askAgentForJson, askAgent } from './common';
+import { getTemplateSummaries } from './devplat-api';
 import { handleDevPlatformApiChatCommand } from './devplat-api-chat';
-import { AgentCommand, AgentState, AgentConfirmationStatus, CommandRequest, DevPlatAgentResult } from './domain/agent';
-import { getTemplateSummaries, templateToSummary } from './devplat-api';
+import { AgentCommand, AgentConfirmationStatus, AgentState, CommandRequest, DevPlatAgentResult } from './domain/agent';
 
 const agentState: AgentState = {
     commandAlreadyInProgress: AgentCommand.None,

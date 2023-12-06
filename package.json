@@ -29,8 +29,7 @@
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "generate-devplat-api-types": "npx openapi-typescript https://devplatformtestapi.azurewebsites.net/openapi/v1/openapi.yaml -o src/domain/devplat-api-openapi.ts"
+        "watch": "tsc -watch -p ./"
     },
     "devDependencies": {
         "@types/cors": "^2.8.14",
@@ -44,6 +43,7 @@
     },
     "dependencies": {
         "dotenv": "^16.3.1",
-        "lunr": "^2.3.9"
+        "lunr": "^2.3.9",
+        "@developer-platform/entities": "0.0.3"
     }
 }

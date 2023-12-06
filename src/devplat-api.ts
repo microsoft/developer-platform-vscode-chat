@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import * as vscode from 'vscode';
 import lunr from 'lunr';
+import * as vscode from 'vscode';
 import { outputChannel } from './common';
 import { DevPlatApiResult, ProviderAuthInfo, TemplateDetail, TemplateSummary } from './domain/devplat-api-interfaces';
+// import { ProviderAuth } from '@developer-platform/entities';
 
 let templates: Array<TemplateDetail> = [];
 let templateSearchIdx: lunr.Index;
@@ -156,7 +157,7 @@ async function createTemplateSearchIndex() {
     const indexObjs = <any>[];
     templates.forEach((template: any, idx: number) => {
         const templateRef = `${template.kind}:${template.metadata.namespace}/${template.metadata.name}`;
-        template.templateRef = templateRef;
+        template.ref = templateRef;
         templateRefLookup[templateRef] = template;
 
         // Populate title lookup table
@@ -166,7 +167,7 @@ async function createTemplateSearchIndex() {
         // Generate search index
         const templateMetadata = template.metadata;
         const indexObj = <any>{
-            templateRef: templateRef,
+            ref: templateRef,
             kind: template.kind || '',
             name: templateMetadata.name || '',
             title: templateMetadata.title || '',
@@ -182,7 +183,7 @@ async function createTemplateSearchIndex() {
     });
     return lunr(function () {
         outputChannel.appendLine('Creating Developer Platform API template index...');
-        this.ref('templateRef');
+        this.ref('ref');
         this.field('kind');
         this.field('name');
         this.field('title');
@@ -208,14 +209,14 @@ export function lookupTemplateByTitle(title: string) {
     return titleLookup[title.toLowerCase()];
 }
 
-export function lookupTemplateByTemplateRef(templateRef: string) {
-    return templateRefLookup[templateRef];
+export function lookupTemplateByRef(ref: string) {
+    return templateRefLookup[ref];
 }
 
 export function getTemplateRefToTitleMap() {
     return templates.reduce((acc, template) => {
-        if (template.templateRef && template.metadata.title) {
-            acc[template.templateRef] = template.metadata.title;
+        if (template.ref && template.metadata.title) {
+            acc[template.ref] = template.metadata.title;
         }
         return acc;
     }, <{ [key: string]: string }>{});
@@ -243,7 +244,7 @@ export async function searchForTemplate(
         results = templateSearchIdx.search(query);
     }
     const templateList = results.map((result, resultIndex) => {
-        const template = lookupTemplateByTemplateRef(result.ref as string);
+        const template = lookupTemplateByRef(result.ref as string);
         const clone = structuredClone(template);
         clone.resultIndex = resultIndex;
         return clone;
@@ -254,7 +255,7 @@ export async function searchForTemplate(
 export function templateToSummary(template: TemplateDetail, resultIndex: number | undefined = undefined) {
     return <TemplateSummary>{
         resultIndex: resultIndex,
-        templateRef: template.templateRef,
+        ref: template.ref,
         name: template.metadata.name,
         title: template.metadata.title,
         description: template.metadata.description,

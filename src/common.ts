@@ -12,7 +12,7 @@ import {
 } from './constants';
 import {
     getTemplateRefToTitleMap,
-    lookupTemplateByTemplateRef,
+    lookupTemplateByRef,
     lookupTemplateByTitle,
     searchForTemplate,
     templateToSummary
@@ -130,9 +130,9 @@ export async function askAgentToFindTemplateList(
         );
         incomingJson.forEach((incomingResult: any) => {
             const template = templateList[parseInt(incomingResult.resultIndex)];
-            if (template.templateRef !== incomingResult.templateRef) {
+            if (template.ref !== incomingResult.ref) {
                 outputChannel.appendLine(
-                    `Incoming json and result templateRef mismatch. Incoming json: ${incomingResult.templateRef}, result: ${template.templateRef}. Omitting from output.`
+                    `Incoming json and result template ref mismatch. Incoming json: ${incomingResult.ref}, result: ${template.ref}. Omitting from output.`
                 );
             } else {
                 result.push(template);
@@ -196,7 +196,7 @@ export async function askAgentToFindOneTemplate(
             token
         );
         const templateRef = Object.keys(outputJson)[0] as string;
-        template = lookupTemplateByTemplateRef(templateRef);
+        template = lookupTemplateByRef(templateRef);
         outputChannel.appendLine(`Found template using copilot: ${template.metadata.title}`);
         return template;
     } catch (err) {
