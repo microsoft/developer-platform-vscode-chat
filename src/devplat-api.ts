@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { ProviderLogin } from '@developer-platform/entities';
 import lunr from 'lunr';
 import * as vscode from 'vscode';
 import { outputChannel } from './common';
@@ -121,7 +122,7 @@ async function getProviderAuthUri(info: ProviderAuthInfo): Promise<vscode.Uri | 
     );
     const response = await fetch(`${info.authorization_uri}?redirect_uri=${authCallbackUri}`, options);
     if (response.status === 200) {
-        const responseJson = await response.json();
+        const responseJson = (await response.json()) as ProviderLogin;
         return vscode.Uri.parse(responseJson.uri);
     }
     return null;

@@ -1,28 +1,54 @@
 name: CI
+
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '.vscode/**'
+      - 'scripts/**'
+      - '**/*.md'
+      - '*.code-workspace'
+
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '.vscode/**'
+      - 'scripts/**'
+      - '**/*.md'
+      - '*.code-workspace'
 
 jobs:
-  build:
+  version:
     runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.fullSemVer }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build and package extension
-        run: npx vsce package
-
-      - name: Upload VSIX
-        uses: actions/upload-artifact@v3
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.15
         with:
-          name: devplat-agent-extension
-          path: devplat-agent-*.vsix
+          versionSpec: '5.12.0'
+
+      - name: Determine Version
+        id: version
+        uses: gittools/actions/gitversion/execute@v0
+        with:
+          useConfigFile: true
+
+  build:
+    uses: ./.github/workflows/build.yml
+    needs: version
+    with:
+      version: ${{ needs.version.outputs.version }}
+
+  release:
+    uses: ./.github/workflows/release.yml
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: version
+    with:
+      version: ${{ needs.version.outputs.version }}
