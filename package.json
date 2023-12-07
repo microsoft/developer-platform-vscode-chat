@@ -20,16 +20,19 @@
         "onStartupFinished"
     ],
     "enabledApiProposals": [
+        "chat",
         "chatAgents2",
+        "chatAgents2Additions",
         "chatRequestAccess",
-        "interactive",
-        "readonlyMessage"
+        "chatVariables"
     ],
     "main": "./out/extension.js",
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./"
+        "watch": "tsc -watch -p ./",
+        "download-api": "dts dev && find . -name 'vscode.proposed.*.d.ts' -exec mv {} ./src/typings \\;",
+        "postinstall": "npm run download-api"
     },
     "devDependencies": {
         "@types/lunr": "^2.3.5",
@@ -39,7 +42,8 @@
         "@typescript-eslint/eslint-plugin": "^6.13.2",
         "@typescript-eslint/parser": "^6.13.2",
         "eslint": "^8.35.0",
-        "typescript": "^5.3.2"
+        "typescript": "^5.3.2",
+        "@vscode/dts": "^0.4.0"
     },
     "dependencies": {
         "dotenv": "^16.3.1",
