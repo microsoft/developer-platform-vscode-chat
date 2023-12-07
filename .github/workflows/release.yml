@@ -1,39 +1,61 @@
-# NOTE: v* tags are protected, so this step will fail for anyone who is not owner/maintainer
 name: Release
+
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: 'Version to release'
+        required: true
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - name: Config
+        run: |
+          npm config set commit-hooks false
+          npm config set git-tag-version false
 
-      - name: Update package.json to match release version
-        run: node scripts/update-version.js  ${{github.ref_name}}
+      - name: Version
+        run: npm version ${{ inputs.version }}
 
-      - name: Build and package extension
+      - name: Install
+        run: npm ci
+
+      - name: Build & Package
         run: npx vsce package
 
-      - name: Create Release
-        uses: ncipollo/release-action@v1
+      - name: Release
+        uses: actions/github-script@v7
         with:
-          commit: ${{ github.sha }}
-          tag: ${{github.ref_name}}
-          generateReleaseNotes: true
-          artifacts: '*.vsix'
+          script: |
+            const releaseResult = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: 'v${{ inputs.version }}',
+              name: 'v${{ inputs.version }}',
+              prerelease: false,
+            });
+
+            const release = releaseResult.data;
+
+            const globber = await glob.create('*.vsix');
+
+            for await (const file of globber.globGenerator()) {
+              const uploadResult = await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id,
+                name: file.split('/').pop(),
+                data: await fs.readFile(file),
+              });
+            }

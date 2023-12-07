@@ -1,0 +1,41 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: 'Version to release'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Config
+        run: |
+          npm config set commit-hooks false
+          npm config set git-tag-version false
+
+      - name: Version
+        run: npm version ${{ inputs.version }}
+
+      - name: Install
+        run: npm ci
+
+      - name: Build & Package
+        run: npx vsce package
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: developer-platform-vscode-chat
+          path: developer-platform-vscode-chat-${{ inputs.version }}.vsix
