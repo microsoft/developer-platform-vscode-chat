@@ -49,6 +49,6 @@ jobs:
   release:
     uses: ./.github/workflows/release.yml
     if: ${{ github.event_name != 'pull_request' }}
-    needs: version
+    needs: [build, version]
     with:
       version: ${{ needs.version.outputs.version }}
