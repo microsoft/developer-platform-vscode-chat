@@ -13,52 +13,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # - uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      # - name: Use Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20
+
+      # - name: Config
+      #   run: |
+      #     npm config set commit-hooks false
+      #     npm config set git-tag-version false
+
+      # - name: Version
+      #   run: npm version ${{ inputs.version }}
+
+      # - name: Install
+      #   run: npm ci
+
+      # - name: Build & Package
+      #   run: npx vsce package
+
+      - name: Artifact
+        uses: actions/download-artifact@v3
         with:
-          node-version: 20
+          name: developer-platform-vscode-chat
 
-      - name: Config
-        run: |
-          npm config set commit-hooks false
-          npm config set git-tag-version false
+      - name: Display structure of downloaded files
+        run: ls -R
 
-      - name: Version
-        run: npm version ${{ inputs.version }}
+      # - name: Release
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       const fs = require('fs');
 
-      - name: Install
-        run: npm ci
+      #       const releaseResult = await github.rest.repos.createRelease({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         tag_name: 'v${{ inputs.version }}',
+      #         name: 'v${{ inputs.version }}',
+      #         generate_release_notes: true,
+      #         prerelease: false,
+      #       });
 
-      - name: Build & Package
-        run: npx vsce package
+      #       const release = releaseResult.data;
 
-      - name: Release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
+      #       const globber = await glob.create('*.vsix');
 
-            const releaseResult = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: 'v${{ inputs.version }}',
-              name: 'v${{ inputs.version }}',
-              generate_release_notes: true,
-              prerelease: false,
-            });
-
-            const release = releaseResult.data;
-
-            const globber = await glob.create('*.vsix');
-
-            for await (const file of globber.globGenerator()) {
-              const uploadResult = await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: release.id,
-                name: file.split('/').pop(),
-                data: fs.readFileSync(file),
-              });
-            }
+      #       for await (const file of globber.globGenerator()) {
+      #         const uploadResult = await github.rest.repos.uploadReleaseAsset({
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           release_id: release.id,
+      #           name: file.split('/').pop(),
+      #           data: fs.readFileSync(file),
+      #         });
+      #       }
