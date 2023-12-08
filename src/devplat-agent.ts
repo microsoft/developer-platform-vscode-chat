@@ -22,8 +22,6 @@ const agentState: AgentState = {
     confirmationStatus: AgentConfirmationStatus.NotStarted
 };
 
-let allTemplateDataSent = false;
-
 export async function initAgent(context: vscode.ExtensionContext) {
     // Create agent
     const agent = vscode.chat.createChatAgent('devplat', chatAgentHandler);
@@ -69,34 +67,36 @@ async function chatAgentHandler(
     }
     if (commandRequest.command === AgentCommand.Question) {
         const results = await (await embeddingsModule).similaritySearch(commandRequest.argumentString);
-        const context = results.map(r => r.pageContent + '\n');
-        const response = await askAgent(
-            [
-                {
-                    role: vscode.ChatMessageRole.System,
-                    content: `Use the data from the __CONTEXT json to help answer your questions.\n${
-                        context ? `` : '\n__CONTEXT=' + JSON.stringify(context)
-                    }}`
-                },
-                {
-                    role: vscode.ChatMessageRole.System,
-                    content: `Use the data from the __ALL_DEV_PLAT_TEMPLATES json to help answer your questions.\n${
-                        allTemplateDataSent
-                            ? ``
-                            : '\n__ALL_DEV_PLAT_TEMPLATES=' + JSON.stringify(getTemplateSummaries())
-                    }}`
-                },
-                {
-                    role: vscode.ChatMessageRole.System,
-                    content: ANSWER_QUESTIONS_PROMPT
-                },
-                {
-                    role: vscode.ChatMessageRole.User,
-                    content: request.prompt
-                }
-            ],
-            token
-        );
+        let messages: Array<vscode.ChatMessage> = [];
+        if (results && results.length > 0) {
+            const context = results.map(r => r.pageContent + '\n');
+            messages.push({
+                role: vscode.ChatMessageRole.System,
+                content: `Use the data from the __CONTEXT json to help answer your questions.\n\n__CONTEXT=${JSON.stringify(
+                    context
+                )}`
+            });
+        }
+        // TODO: Switch this scenario to use embeddings and a similarity search to filter down instead of passing in all templates.
+        //       However, we'll still want to keep this separate from the main context so we can be more specific for how the data is used.
+        messages = messages.concat([
+            {
+                role: vscode.ChatMessageRole.System,
+                content: `Use the data from the __ALL_DEV_PLAT_TEMPLATES json to help answer your questions.\n\n__ALL_DEV_PLAT_TEMPLATES='${JSON.stringify(
+                    getTemplateSummaries()
+                )}'`
+            },
+            {
+                role: vscode.ChatMessageRole.System,
+                content: ANSWER_QUESTIONS_PROMPT
+            },
+            {
+                role: vscode.ChatMessageRole.User,
+                content: request.prompt
+            }
+        ]);
+
+        const response = await askAgent(messages, token);
         progress.report({ content: response } as vscode.ChatAgentContent);
         return {};
     }
