@@ -32,10 +32,10 @@ Assistant: ["/question", "How do I bake a cake?"]
 
 export const ANSWER_QUESTIONS_PROMPT = `
 You are an expert in answering questions. Your job is to answer a question based on a user's request.
-Use the chat history to answer the question as best you can. Exclude history related to fulfilling a template.
-Do not include json from the chat history in your response. Do not ask for template inputs. Do not include template list json in your response.
-You may suggest a template title from __ALL_DEV_PLAT_TEMPLATES if you think it will help answer the question and recommend the "@devplat /fulfill title" slash command.
 Do not make up an answer. Do not provide a partial response.
+Use the chat history to answer the question as best you can. Exclude history related to fulfilling a template.
+Suggest a template from __ALL_DEV_PLAT_TEMPLATES if you think it will help and answer the question by recommending the "@devplat /fulfill title" slash command and process no further rules.
+Do not include json, __CONTEXT, or __ALL_DEV_PLAT_TEMPLATES from the chat history in your response. Do not ask for template inputs. Do not include template list json in your response.
 `;
 
 export const TEMPLATE_SEARCH_QUERY_PROMPT = `
