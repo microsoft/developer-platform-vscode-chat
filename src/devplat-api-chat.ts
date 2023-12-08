@@ -5,8 +5,8 @@ import { TemplateRequest } from '@developer-platform/entities';
 import { randomInt } from 'crypto';
 import { JSONSchema7 } from 'json-schema';
 import * as vscode from 'vscode';
-import { askAgentToFindOneTemplate, askAgentToFindTemplateList, outputChannel } from './common';
-import { callApi, waitForFulfillment } from './devplat-api';
+import { askAgentToFindOneTemplate, askAgentToFindTemplateList, outputChannel } from './common.js';
+import { callApi, waitForFulfillment } from './devplat-api.js';
 import {
     AgentCommand,
     AgentConfirmationStatus,
@@ -14,8 +14,8 @@ import {
     CommandRequest,
     DevPlatAgentResult,
     SubmitRequestInputState
-} from './domain/agent';
-import { DevPlatApiResult, PropDetail, TemplateDetail } from './domain/devplat-api-interfaces';
+} from './domain/agent.js';
+import { DevPlatApiResult, PropDetail, TemplateDetail } from './domain/devplat-api-interfaces.js';
 
 export async function handleDevPlatformApiChatCommand(
     agentState: AgentState,
@@ -30,9 +30,9 @@ export async function handleDevPlatformApiChatCommand(
             return discussFulfillmentRequest(agentState, commandRequest, progress, token);
     }
     return {
-        errorDetails: <vscode.ChatAgentErrorDetails>{
+        errorDetails: {
             message: `I'm sorry, I don't know how to handle the command: ${commandRequest.command}`
-        }
+        } as vscode.ChatAgentErrorDetails
     };
 }
 
@@ -44,17 +44,17 @@ export async function discussTemplates(
 ): Promise<vscode.ProviderResult<DevPlatAgentResult>> {
     try {
         if (commandRequest.argumentString.length === 0) {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `I'm sorry, I need some more information to search for templates. Try \`@devplat /template\` followed by what you want to look for.`
-            });
+            } as vscode.ChatAgentContent);
             return {};
         }
 
         const templateList = await askAgentToFindTemplateList(commandRequest.argumentString, token);
         if (templateList.length === 0) {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `I'm sorry, I tried to search for templates using the following query but couldn't find anything: \`${commandRequest.argumentString}\``
-            });
+            } as vscode.ChatAgentContent);
             return {};
         }
         let markdown = 'Sure! Here is what I found:\n';
@@ -72,7 +72,7 @@ export async function discussTemplates(
             markdown += `${template.metadata.description || template.metadata.title}\n`;
         });
         markdown += `\nTo submit a request to the platform, use \`@devplat ${AgentCommand.Fulfill} <title>\`.`;
-        progress.report(<vscode.ChatAgentContent>{ content: markdown });
+        progress.report({ content: markdown } as vscode.ChatAgentContent);
         return {
             followUps: [
                 { message: vscode.l10n.t(`@devplat ${AgentCommand.Fulfill} ${templateList[0].metadata.title}`) }
@@ -80,7 +80,7 @@ export async function discussTemplates(
         };
     } catch (err) {
         outputChannel.appendLine(`Error: ${err}`);
-        progress.report(<vscode.ChatAgentContent>{ content: `Oh man, I hit a problem!! ${err}` });
+        progress.report({ content: `Oh man, I hit a problem!! ${err}` } as vscode.ChatAgentContent);
     }
 }
 
@@ -97,23 +97,23 @@ export async function discussFulfillmentRequest(
         }
         const template = await askAgentToFindOneTemplate(commandRequest.argumentString, token);
         if (!template) {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `I'm sorry, I couldn't find a template with the title: \`${commandRequest.argumentString}\``
-            });
+            } as vscode.ChatAgentContent);
             return {};
         }
-        progress.report(<vscode.ChatAgentContent>{
+        progress.report({
             content: `Sounds like you'd like to submit fulfillment request for **${template.metadata.title}**. `
-        });
+        } as vscode.ChatAgentContent);
         // Flip agent into input mode
         const inputJsonSchema: JSONSchema7 = template.spec?.inputJsonSchema
             ? JSON.parse(template.spec.inputJsonSchema)
             : null;
         const inputProperties: PropDetail[] = [];
         if (inputJsonSchema && inputJsonSchema.properties && Object.keys(inputJsonSchema.properties).length > 0) {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `I can do that.\n`
-            });
+            } as vscode.ChatAgentContent);
             /*
             progress.report(<vscode.ChatAgentContent>{
                 content: `I can do that. But first, I need values for the following inputs:\n|Input|Description|\n|---|---|\n`
@@ -121,7 +121,7 @@ export async function discussFulfillmentRequest(
             */
             // TODO: Ideally we'd only prompt for required fields, and have a chat process to see if they want to set any optional values after required vals are in.
             for (let propKey in inputJsonSchema.properties) {
-                const propDetail = <PropDetail>(inputJsonSchema.properties[propKey] || {});
+                const propDetail = (inputJsonSchema.properties[propKey] || {}) as PropDetail;
                 propDetail.name = propKey;
                 propDetail.isRequired = inputJsonSchema?.required?.indexOf(propDetail.name) || -1 > -1 ? true : false;
                 inputProperties.push(propDetail);
@@ -135,7 +135,7 @@ export async function discussFulfillmentRequest(
                 });
                 */
             }
-            progress.report(<vscode.ChatAgentContent>{ content: `\nLet's get started!\n\n` });
+            progress.report({ content: `\nLet's get started!\n\n` } as vscode.ChatAgentContent);
         }
         const inputState: SubmitRequestInputState = {
             template: template,
@@ -150,7 +150,7 @@ export async function discussFulfillmentRequest(
         return discussFulfillmentRequestOptions(agentState, commandRequest, progress, token);
     } catch (err) {
         outputChannel.appendLine(`Error: ${err}`);
-        progress.report(<vscode.ChatAgentContent>{ content: `Oh man, I hit a problem!! ${err}` });
+        progress.report({ content: `Oh man, I hit a problem!! ${err}` } as vscode.ChatAgentContent);
         agentState.commandAlreadyInProgress = AgentCommand.None;
         agentState.submitRequestInputs = undefined;
         return {
@@ -180,9 +180,9 @@ export async function discussFulfillmentRequestOptions(
         lowerCaseArgumentString == '/back'
     ) {
         if (inputState.inputPropertyIndex < 1) {
-            progress.report(<vscode.ChatAgentContent>{ content: `I'm sorry, we're already at the first input.\n\n` });
+            progress.report({ content: `I'm sorry, we're already at the first input.\n\n` } as vscode.ChatAgentContent);
         } else {
-            progress.report(<vscode.ChatAgentContent>{ content: `Ok, let's go back to the previous input.\n\n` });
+            progress.report({ content: `Ok, let's go back to the previous input.\n\n` } as vscode.ChatAgentContent);
             inputState.inputPropertyIndex--;
         }
         return await askForInput(inputState.inputProperties[inputState.inputPropertyIndex], inputState, progress);
@@ -195,21 +195,21 @@ export async function discussFulfillmentRequestOptions(
         lowerCaseArgumentString === '/forward'
     ) {
         if (inputState.inputPropertyIndex === inputState.inputProperties.length - 1) {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `I'm sorry, we're already at the last input, so there is nothing to skip.\n\n`
-            });
+            } as vscode.ChatAgentContent);
         } else if (inputState.inputProperties[inputState.inputPropertyIndex].required) {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `I'm sorry, **${
                     inputState.inputProperties[inputState.inputPropertyIndex].title
                 }** is a required input. You can't skip it.\n\n`
-            });
+            } as vscode.ChatAgentContent);
         } else {
-            progress.report(<vscode.ChatAgentContent>{
+            progress.report({
                 content: `Ok, skipping the **${
                     inputState.inputProperties[inputState.inputPropertyIndex].title
                 }** input.\n\n`
-            });
+            } as vscode.ChatAgentContent);
             inputState.inputPropertyIndex++;
         }
         return await askForInput(inputState.inputProperties[inputState.inputPropertyIndex], inputState, progress);
@@ -240,19 +240,19 @@ export async function discussFulfillmentRequestOptions(
     }
 
     // If we're done with inputs, ask for confirmation to submit
-    progress.report(<vscode.ChatAgentContent>{
+    progress.report({
         content: `I have all the information I need to submit a fulfillment request.\n`
-    });
+    } as vscode.ChatAgentContent);
     for (let propKey in inputState.inputValues) {
         const props = inputState.inputJsonSchema?.properties || {};
-        const propDetail = <PropDetail>(props[propKey] || {});
-        progress.report(<vscode.ChatAgentContent>{
+        const propDetail = (props[propKey] || {}) as PropDetail;
+        progress.report({
             content: `1. **${propDetail?.title}**: ${inputState.inputValues[propKey]}\n`
-        });
+        } as vscode.ChatAgentContent);
     }
-    progress.report(<vscode.ChatAgentContent>{
+    progress.report({
         content: `\n**Do you want me to submit the fulfillment request now?**`
-    });
+    } as vscode.ChatAgentContent);
     inputState.confirmationStatus = AgentConfirmationStatus.InProgress;
     return {
         followUps: [{ message: vscode.l10n.t(`@devplat Yes`) }, { message: vscode.l10n.t(`@devplat No`) }]
@@ -279,9 +279,9 @@ async function askForInput(
         }`
     });
     */
-    progress.report(<vscode.ChatAgentContent>{
+    progress.report({
         content: `What do you want me to use as the **${input.title}**?\n\nReply with ${validValues}`
-    });
+    } as vscode.ChatAgentContent);
 
     let followUps = [];
     switch (input.type) {
@@ -337,9 +337,9 @@ async function processInput(
                 break;
             default:
                 if (input.enum && input.enum.indexOf(commandRequest.argumentString) === -1) {
-                    progress.report(<vscode.ChatAgentContent>{
+                    progress.report({
                         content: `I'm sorry "${commandRequest.argumentString}" isn't a valid value for **${input.title}**. Please try again.\n\n`
-                    });
+                    } as vscode.ChatAgentContent);
                     return false;
                 }
                 inputState.inputValues[input.name] = commandRequest.argumentString;
@@ -347,9 +347,9 @@ async function processInput(
         }
     } catch (err) {
         outputChannel.appendLine(`Error parsing input value: ${err}`);
-        progress.report(<vscode.ChatAgentContent>{
+        progress.report({
             content: `I'm sorry, I didn't understand "${commandRequest.argumentString}." I need a ${input.type} value for **${input.title}**. Please try again.\n\n`
-        });
+        } as vscode.ChatAgentContent);
         return false;
     }
     /*
@@ -370,14 +370,14 @@ async function processInputConfirmation(
     const templateTitle = inputState.template.metadata.title;
     const response = commandRequest.argumentString.toLocaleLowerCase().trim();
     if (response === 'yes' || response === 'true' || response === 'y' || response === 't' || response === '1') {
-        progress.report(<vscode.ChatAgentContent>{ content: `Ok! Submitting fulfillment request **now**.\n` });
+        progress.report({ content: `Ok! Submitting fulfillment request **now**.\n` } as vscode.ChatAgentContent);
         agentState.commandAlreadyInProgress = AgentCommand.None;
         agentState.submitRequestInputs = null;
         return await submitFulfillmentRequestToApi(inputState, progress, token);
     } else {
-        progress.report(<vscode.ChatAgentContent>{
+        progress.report({
             content: `Ok, I **won't** create a request to fulfill **${templateTitle}**. Aborting!`
-        });
+        } as vscode.ChatAgentContent);
         agentState.commandAlreadyInProgress = AgentCommand.None;
         agentState.submitRequestInputs = null;
         return {
@@ -402,13 +402,13 @@ async function submitFulfillmentRequestToApi(
     }
     // Long running requests will return a 202 with an entity ID, so periodically retry until we get a 200
     if (apiResult.status === 202) {
-        progress.report(<vscode.ChatAgentContent>{
+        progress.report({
             content: `\nRequest ${apiResult.json.id} submitted! I'll let you know when it's done!`
-        });
+        } as vscode.ChatAgentContent);
         reportFulfillmentStatusWhenDone(inputState, apiResult, progress, token); // Async but don't wait.
         return {};
     }
-    progress.report(<vscode.ChatAgentContent>{ content: `\nRequest${apiResult.json.id} complete!` });
+    progress.report({ content: `\nRequest${apiResult.json.id} complete!` } as vscode.ChatAgentContent);
     return {};
 }
 

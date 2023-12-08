@@ -20,7 +20,7 @@ export interface DevPlatApiResult {
     status: number;
     retryAfter?: number;
     additionalAuthRequested: boolean;
-    additionalAuthInfo: ProviderAuthInfo;
+    additionalAuthInfo: ProviderAuthInfo | null;
     text: string;
     json: any;
 }

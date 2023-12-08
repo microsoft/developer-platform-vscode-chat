@@ -1,3 +1,6 @@
+.env.oai
+tmp
+
 # Logs
 logs
 *.log

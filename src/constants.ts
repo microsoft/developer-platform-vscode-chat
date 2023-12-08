@@ -11,10 +11,10 @@ Once you have formed a slash command, add the rest of the user's request without
 Generate a json array with the slash command and the text after the slash command, and then include this array in your response.
 
 The following is a list of valid slash commands:
-/question
-/template
-/fulfill
-/cancel
+"/question"
+"/template"
+"/fulfill"
+"/cancel"
 
 ## Valid setup question
 User: What templates can I use that must include kubernetes and cosmosdb and chatgpt but not azure and maybe cats on tuesdays in the dark?

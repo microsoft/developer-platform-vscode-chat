@@ -9,15 +9,15 @@ import {
     DEVPLAT_TEMPLATE_LIST_PROMPT_PREFIX,
     DEVPLAT_TEMPLATE_LIST_PROMPT_SUFFIX,
     TEMPLATE_SEARCH_QUERY_PROMPT
-} from './constants';
+} from './constants.js';
 import {
     getTemplateRefToTitleMap,
     lookupTemplateByRef,
     lookupTemplateByTitle,
     searchForTemplate,
     templateToSummary
-} from './devplat-api';
-import { TemplateDetail } from './domain/devplat-api-interfaces';
+} from './devplat-api.js';
+import { TemplateDetail } from './domain/devplat-api-interfaces.js';
 
 let chatAccess: vscode.ChatAccess | undefined;
 export let outputChannel: vscode.OutputChannel;
@@ -102,7 +102,7 @@ export async function askAgentToFindTemplateList(
     searchQuery: string,
     token: vscode.CancellationToken
 ): Promise<TemplateDetail[]> {
-    const result = <Array<TemplateDetail>>[];
+    const result: Array<TemplateDetail> = [];
     const searchCriteriaPrompt = await refineSearchQuery(searchQuery, token);
     outputChannel.appendLine(`Modified prompt: ${searchCriteriaPrompt}`);
     const templateList = await searchForTemplate(searchCriteriaPrompt);

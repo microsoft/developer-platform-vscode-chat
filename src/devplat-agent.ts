@@ -2,11 +2,19 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { askAgent, askAgentForJson, outputChannel } from './common';
-import { ANSWER_QUESTIONS_PROMPT, COMMAND_SELECTION_PROMPT } from './constants';
-import { getTemplateSummaries } from './devplat-api';
-import { handleDevPlatformApiChatCommand } from './devplat-api-chat';
-import { AgentCommand, AgentConfirmationStatus, AgentState, CommandRequest, DevPlatAgentResult } from './domain/agent';
+import { askAgent, askAgentForJson, outputChannel } from './common.js';
+import { ANSWER_QUESTIONS_PROMPT, COMMAND_SELECTION_PROMPT } from './constants.js';
+import { getTemplateSummaries } from './devplat-api.js';
+import { handleDevPlatformApiChatCommand } from './devplat-api-chat.js';
+import {
+    AgentCommand,
+    AgentConfirmationStatus,
+    AgentState,
+    CommandRequest,
+    DevPlatAgentResult
+} from './domain/agent.js';
+
+const embeddingsModule = import('./embeddings/search.mjs');
 
 const agentState: AgentState = {
     commandAlreadyInProgress: AgentCommand.None,
@@ -15,12 +23,12 @@ const agentState: AgentState = {
 
 let allTemplateDataSent = false;
 
-export function initAgent(context: vscode.ExtensionContext) {
+export async function initAgent(context: vscode.ExtensionContext) {
     // Create agent
     const agent = vscode.chat.createChatAgent('devplat', chatAgentHandler);
     agent.fullName = 'Internal Developer Platform';
     agent.description = 'Agent that enables self-service capabilities from an Internal Developer Platform';
-    agent.slashCommandProvider = <vscode.ChatAgentSlashCommandProvider>{
+    agent.slashCommandProvider = {
         provideSlashCommands(token: vscode.CancellationToken): vscode.ProviderResult<vscode.ChatAgentSlashCommand[]> {
             return [
                 { name: 'template', description: 'List available templates available to request.' },
@@ -28,14 +36,17 @@ export function initAgent(context: vscode.ExtensionContext) {
                 { name: 'cancel', description: 'Cancel whatever any command that is in flight.' }
             ];
         }
-    };
-    agent.followupProvider = <vscode.FollowupProvider>{
+    } as vscode.ChatAgentSlashCommandProvider;
+    agent.followupProvider = {
         provideFollowups(result: DevPlatAgentResult, token: vscode.CancellationToken) {
             if (result?.followUps && result.followUps.length > 0) {
                 return result.followUps;
             }
         }
-    };
+    } as vscode.FollowupProvider;
+
+    // Init embeddings
+    (await embeddingsModule).initEmbeddings();
 
     // Add agent
     context.subscriptions.push(agent);
@@ -50,14 +61,22 @@ async function chatAgentHandler(
     const commandRequest = await resolveCommand(request, token);
     if (commandRequest.command === AgentCommand.Cancel) {
         agentState.commandAlreadyInProgress = AgentCommand.None;
-        progress.report(<vscode.ChatAgentContent>{
+        progress.report({
             content: `Right-o! We can pretend that never happened. What do you want to talk about now?`
-        });
+        } as vscode.ChatAgentContent);
         return {};
     }
     if (commandRequest.command === AgentCommand.Question) {
+        const results = await (await embeddingsModule).similaritySearch(commandRequest.argumentString);
+        const context = results.map(r => r.pageContent + '\n');
         const response = await askAgent(
             [
+                {
+                    role: vscode.ChatMessageRole.System,
+                    content: `Use the data from the __CONTEXT json to help answer your questions.\n${
+                        context ? `` : '\n__CONTEXT=' + JSON.stringify(context)
+                    }}`
+                },
                 {
                     role: vscode.ChatMessageRole.System,
                     content: `Use the data from the __ALL_DEV_PLAT_TEMPLATES json to help answer your questions.\n${
@@ -77,13 +96,13 @@ async function chatAgentHandler(
             ],
             token
         );
-        progress.report(<vscode.ChatAgentContent>{ content: response });
+        progress.report({ content: response } as vscode.ChatAgentContent);
         return {};
     }
     if (commandRequest.command === AgentCommand.None) {
-        progress.report(<vscode.ChatAgentContent>{
+        progress.report({
             content: `Hmmm. Not sure what you want me to do. Can you try rephrasing?`
-        });
+        } as vscode.ChatAgentContent);
         return {};
     }
     return await handleDevPlatformApiChatCommand(agentState, commandRequest, progress, token);
@@ -99,20 +118,20 @@ async function resolveCommand(
         promptContent.startsWith('/abort') ||
         promptContent.startsWith('/cancel')
     ) {
-        return <CommandRequest>{
+        return {
             command: AgentCommand.Cancel,
             argumentString: ''
-        };
+        } as CommandRequest;
     }
     // Return existing state if set so handler can pick it up and use it
     if (
         agentState.commandAlreadyInProgress !== AgentCommand.FindCommand &&
         agentState.commandAlreadyInProgress !== AgentCommand.None
     ) {
-        return <CommandRequest>{
+        return {
             command: agentState.commandAlreadyInProgress,
             argumentString: promptContent.replace(agentState.commandAlreadyInProgress.toString(), '').trim()
-        };
+        } as CommandRequest;
     }
     // If command is not set, set it - first, if there's a slash, resolve directly
     if (request.slashCommand) {
@@ -140,10 +159,10 @@ async function resolveCommand(
         return getCommandRequestFromPrompt(json);
     } catch (err) {
         outputChannel.appendLine(`Error resolving command prompt: ${err}`);
-        return <CommandRequest>{
+        return {
             command: AgentCommand.None,
             argumentString: ''
-        };
+        } as CommandRequest;
     }
 }
 
@@ -160,8 +179,8 @@ function getCommandRequestFromPrompt(promptContent: any): CommandRequest {
     for (let i = 1; i < promptContent.length; i++) {
         argumentString += promptContent[i] + ' ';
     }
-    return <CommandRequest>{
+    return {
         command: command,
         argumentString: argumentString
-    };
+    } as CommandRequest;
 }

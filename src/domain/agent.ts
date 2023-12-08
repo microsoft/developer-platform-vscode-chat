@@ -3,7 +3,7 @@
 
 import { JSONSchema7 } from 'json-schema';
 import * as vscode from 'vscode';
-import { PropDetail, TemplateDetail } from './devplat-api-interfaces';
+import { PropDetail, TemplateDetail } from './devplat-api-interfaces.js';
 
 export enum AgentCommand {
     FindCommand = '~~*command*~~',

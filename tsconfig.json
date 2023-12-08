@@ -1,16 +1,16 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
+		"module": "NodeNext",
 		"target": "ES2022",
 		"lib": [
-			"ES2022"
+			"ES2022",
 		],
-		"sourceMap": true,
+        "sourceMap": true,
 		"rootDir": "src",
 		"strict": true,
 		"outDir": "out",
-		// "esModuleInterop": true,
-		// "skipLibCheck": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
 		// "forceConsistentCasingInFileNames": true
 	},
 	"exclude": [

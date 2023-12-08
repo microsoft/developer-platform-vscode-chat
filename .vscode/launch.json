@@ -1,16 +1,27 @@
 {
 	"configurations": [
 		{
+			"name": "Launch Extension",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
-			"name": "Launch Extension",
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
 			"preLaunchTask": "compile",
 			"request": "launch",
 			"type": "extensionHost"
-		}
+		},
+        {
+            "name": "Create Embeddings",
+            "program": "${workspaceFolder}/src/embeddings/train.mts",
+            "request": "launch",
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js",
+				"${workspaceFolder}/out/**/*.mjs"
+			],
+            "type": "node",
+			"preLaunchTask": "compile",
+        },
 	]
 }

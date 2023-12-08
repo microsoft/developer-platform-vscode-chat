@@ -4,8 +4,13 @@
 import { ProviderLogin } from '@developer-platform/entities';
 import lunr from 'lunr';
 import * as vscode from 'vscode';
-import { outputChannel } from './common';
-import { DevPlatApiResult, ProviderAuthInfo, TemplateDetail, TemplateSummary } from './domain/devplat-api-interfaces';
+import { outputChannel } from './common.js';
+import {
+    DevPlatApiResult,
+    ProviderAuthInfo,
+    TemplateDetail,
+    TemplateSummary
+} from './domain/devplat-api-interfaces.js';
 // import { ProviderAuth } from '@developer-platform/entities';
 
 let templates: Array<TemplateDetail> = [];
@@ -62,7 +67,7 @@ export async function callApi(
             }
             acc[key.trim()] = value.trim().replace(/"/g, '');
             return acc;
-        }, <any>{});
+        }, {} as any);
     }
     const retryAfter = response.headers.get('retry-after');
     let responseText = '';
@@ -75,7 +80,7 @@ export async function callApi(
             // Ignore since this is a parsing error
         }
     }
-    return <DevPlatApiResult>{
+    return {
         // 200, 201, 202 are all considered success - e.g., 202 is "Accepted" which is used when fulfilling
         success: [200, 201, 202].includes(response.status),
         retryAfter: retryAfter ? parseInt(retryAfter!) : undefined,
@@ -107,7 +112,10 @@ async function getAccessToken(scope: string | null = null): Promise<string> {
 }
 
 // Call the Dev Platform API to get a URI to facilitate provider auth
-async function getProviderAuthUri(info: ProviderAuthInfo): Promise<vscode.Uri | null> {
+async function getProviderAuthUri(info: ProviderAuthInfo | null): Promise<vscode.Uri | null> {
+    if (!info) {
+        return null;
+    }
     const accessToken = await getAccessToken(info.scopes);
     const options = {
         method: 'GET',
@@ -136,7 +144,7 @@ async function createTemplateSearchIndex() {
     templates = apiResult.json;
 
     // Trigger secondary Provider auth if needed
-    if (apiResult.additionalAuthRequested) {
+    if (apiResult.additionalAuthRequested && apiResult.additionalAuthInfo) {
         const authorizeActionName = `Authorize ${apiResult.additionalAuthInfo.realm}`;
         vscode.window
             .showInformationMessage(
@@ -155,7 +163,7 @@ async function createTemplateSearchIndex() {
     }
 
     //templates = require(join(__dirname, '..', 'api-test-data.json'));
-    const indexObjs = <any>[];
+    const indexObjs: Array<any> = [];
     templates.forEach((template: any, idx: number) => {
         const templateRef = `${template.kind}:${template.metadata.namespace}/${template.metadata.name}`;
         template.ref = templateRef;
@@ -167,7 +175,7 @@ async function createTemplateSearchIndex() {
 
         // Generate search index
         const templateMetadata = template.metadata;
-        const indexObj = <any>{
+        const indexObj = {
             ref: templateRef,
             kind: template.kind || '',
             name: templateMetadata.name || '',
@@ -220,7 +228,7 @@ export function getTemplateRefToTitleMap() {
             acc[template.ref] = template.metadata.title;
         }
         return acc;
-    }, <{ [key: string]: string }>{});
+    }, {} as { [key: string]: string });
 }
 
 export async function searchForTemplate(
@@ -233,10 +241,10 @@ export async function searchForTemplate(
     }
     let results: lunr.Index.Result[];
     if (exact) {
-        const opts = <any>{
+        const opts = {
             presence: lunr.Query.presence.REQUIRED,
             wildcard: lunr.Query.wildcard.NONE
-        };
+        } as any;
         if (exactFields) {
             opts.fields = exactFields;
         }
@@ -253,8 +261,11 @@ export async function searchForTemplate(
     return templateList;
 }
 
-export function templateToSummary(template: TemplateDetail, resultIndex: number | undefined = undefined) {
-    return <TemplateSummary>{
+export function templateToSummary(
+    template: TemplateDetail,
+    resultIndex: number | undefined = undefined
+): Promise<TemplateSummary> {
+    return {
         resultIndex: resultIndex,
         ref: template.ref,
         name: template.metadata.name,
@@ -262,7 +273,7 @@ export function templateToSummary(template: TemplateDetail, resultIndex: number 
         description: template.metadata.description,
         tags: template.metadata.tags,
         creates: template.spec?.creates?.map((obj: any) => obj.kind)
-    };
+    } as any;
 }
 
 export function getTemplateSummaries() {

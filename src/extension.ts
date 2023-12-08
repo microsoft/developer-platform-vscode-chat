@@ -4,10 +4,10 @@
 import dotenv from 'dotenv';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { initOutputChannel } from './common';
-import { initAgent } from './devplat-agent';
-import { initApiCaller } from './devplat-api';
-import { handleTemplateCommand } from './input-flow';
+import { initOutputChannel } from './common.js';
+import { initAgent } from './devplat-agent.js';
+import { initApiCaller } from './devplat-api.js';
+import { handleTemplateCommand } from './input-flow.js';
 
 export async function activate(context: vscode.ExtensionContext) {
     // bring in .env file
