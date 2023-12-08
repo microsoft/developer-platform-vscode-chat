@@ -14,6 +14,7 @@ import {
     DevPlatAgentResult
 } from './domain/agent.js';
 
+// We're in a commonjs module, and we need to import an ES module (given that's what langchain is), so use import()
 const embeddingsModule = import('./embeddings/search.mjs');
 
 const agentState: AgentState = {
