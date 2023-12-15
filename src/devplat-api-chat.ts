@@ -280,7 +280,7 @@ async function askForInput(
     });
     */
     progress.report(<vscode.ChatAgentContent>{
-        content: `What do you want me to use as the **${input.title}**?`
+        content: `What do you want me to use as the **${input.title}**?\n\nReply with ${validValues}`
     });
 
     let followUps = [];
