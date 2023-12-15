@@ -53,7 +53,7 @@ export async function callApi(
     let additionalAuthInfo: ProviderAuthInfo | null = null;
     const wwwAuth = response.headers.get('www-authenticate');
     if (response.status === 200 && wwwAuth) {
-        // comes back as something like: 'Bearer realm="GitHub", authorization_uri="https://devplatformtest-github.azurewebsites.net/auth/login", scopes="api://009222db-2537-4d5e-9da4-e9ee90e82ecf/.default"'
+        // comes back as something like: 'Bearer realm="GitHub",authorization_uri="https://devplatform-github.azurewebsites.net/auth/login",scopes="api://009222db-2537-4d5e-9da4-e9ee90e82ecf/.default"'
         // Json becomes: { "realm": "GitHub", "authorization_uri": "https://...", "scopes": "api://..." }
         additionalAuthInfo = wwwAuth.split(',').reduce((acc, param) => {
             let [key, value] = param.split('=');
