@@ -17,7 +17,7 @@ The extension uses VS Code proposed API which is subject to change until finaliz
 
 > **Note: this extension sample requires VS Code 1.83.0 or newer.**
 
-1. Fully shut down VS Code Insiders, then run `code-insiders --enable-proposed-api ms-vscode.devplat-agent`
+1. Fully shut down VS Code Insiders, then run `code-insiders --enable-proposed-api ms-vscode.developer-platform-vscode-chat`
 2. Download the VSIX from [Releases](https://github.com/microsoft/developer-platform-vscode-chat/releases), install in VS Code Insiders
 3. Ensure you are on the pre-release of Copilot Chat
 4. Sign into the Internal Developer Platform if prompted (once per machine).
