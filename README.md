@@ -4,7 +4,7 @@ This extension illustrates how an extension can register a `@devplat` chat agent
 
 The contributes a `/template` and `/fulfill` command to find and fulfill a template. In addition, you can just send a message to `@devplat` and it will attempt to resolve a slash command and parameters.
 
-The extension uses VS Code proposed API which is subject to change until finalization. Please review all the proposals in the [typings](./src/typings) directory.
+The extension uses VS Code [proposed API](https://code.visualstudio.com/api/advanced-topics/using-proposed-api) which is subject to change until finalization. Please review all the proposals in the [typings](./src/typings) directory.
 
 ## Development
 

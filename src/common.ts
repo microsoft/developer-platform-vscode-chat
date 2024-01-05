@@ -20,6 +20,7 @@ import {
 import { TemplateDetail } from './domain/devplat-api-interfaces';
 
 let chatAccess: vscode.ChatAccess | undefined;
+
 export let outputChannel: vscode.OutputChannel;
 
 export function initOutputChannel(context: vscode.ExtensionContext) {
